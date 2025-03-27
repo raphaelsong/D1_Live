@@ -6,6 +6,8 @@
 #include "Character/D1CharacterBase.h"
 #include "D1Player.generated.h"
 
+struct FInputActionValue;
+
 /**
  * 
  */
@@ -28,6 +30,29 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+#pragma region InputSystem
+private:
+	void Input_Attack(const FInputActionValue& InputValue);
+	void Input_Move(const FInputActionValue& InputValue);
+	void Input_Turn(const FInputActionValue& InputValue);
+
+protected:
+	UPROPERTY(EditAnywhere , Category = Input)
+	TObjectPtr<class UInputMappingContext> InputMappingContext;
+
+	UPROPERTY(EditAnywhere , Category = Input)
+	TObjectPtr<class UInputAction> AttackAction;
+
+	UPROPERTY(EditAnywhere , Category = Input)
+	TObjectPtr<class UInputAction> MoveAction;
+
+	UPROPERTY(EditAnywhere , Category = Input)
+	TObjectPtr<class UInputAction> TurnAction;
+
+	UPROPERTY(EditAnywhere , Category = Input)
+	TObjectPtr<class UInputAction> JumpAction;
+#pragma endregion
 
 protected:
 	UPROPERTY(VisibleAnywhere , BlueprintReadOnly)
