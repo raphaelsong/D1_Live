@@ -3,9 +3,13 @@
 
 #include "Character/D1Monster.h"
 #include "Components/CapsuleComponent.h"
+#include "AI/D1AIController.h"
 
 AD1Monster::AD1Monster()
 {
+	AIControllerClass = AD1AIController::StaticClass();
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("D1Monster"));
 
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

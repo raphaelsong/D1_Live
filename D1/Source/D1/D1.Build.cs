@@ -19,7 +19,10 @@ public class D1 : ModuleRules
 			"CoreUObject", 
 			"Engine", 
 			"InputCore", 
-			"EnhancedInput" 
+			"EnhancedInput",
+			"NavigationSystem",
+			"AIModule",
+			"GameplayTasks",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
