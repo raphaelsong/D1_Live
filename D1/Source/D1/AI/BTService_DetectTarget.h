@@ -14,4 +14,13 @@ class D1_API UBTService_DetectTarget : public UBTService
 {
 	GENERATED_BODY()
 	
+public:
+	UBTService_DetectTarget();
+
+public:
+	virtual void TickNode(UBehaviorTreeComponent& OwnerComp , uint8* NodeMemory , float DeltaSeconds) override;
+
+protected:
+	UPROPERTY(EditAnywhere)
+	float DetectRange = 500.0f;
 };
