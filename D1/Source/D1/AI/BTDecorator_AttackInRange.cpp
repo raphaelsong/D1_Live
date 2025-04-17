@@ -4,6 +4,7 @@
 #include "AI/BTDecorator_AttackInRange.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Interface/D1AIInterface.h"
 
 UBTDecorator_AttackInRange::UBTDecorator_AttackInRange()
 {
@@ -19,6 +20,12 @@ bool UBTDecorator_AttackInRange::CalculateRawConditionValue(UBehaviorTreeCompone
 	APawn* TargetPawn = Cast<APawn>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(TEXT("TargetActor")));
 	if (nullptr == TargetPawn)
 		return false;
+
+	ID1AIInterface* D1AIPawn = Cast<ID1AIInterface>(ControllingPawn);
+	if (D1AIPawn)
+	{
+		return (ControllingPawn->GetDistanceTo(TargetPawn) <= D1AIPawn->GetAttackRange());
+	}
 
 	return (ControllingPawn->GetDistanceTo(TargetPawn) <= AttackRange);
 }

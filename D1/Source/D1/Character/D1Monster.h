@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Character/D1CharacterBase.h"
+#include "Interface/D1AIInterface.h"
 #include "D1Monster.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class D1_API AD1Monster : public AD1CharacterBase
+class D1_API AD1Monster : public AD1CharacterBase, public ID1AIInterface
 {
 	GENERATED_BODY()
 	
@@ -29,6 +30,14 @@ public:
 public:
 	virtual void SetDead() override;
 
+	virtual float GetAttackRange() override;
+	virtual void AttackByAI() override;
+	virtual void SetAIAttackFinishedDelegate(const FAIAttackFinished& InOnAttackFinished) override;
+
+	virtual void ComboAttackEnd(class UAnimMontage* TargetMontage , bool IsProperlyEnded) override;
+
 protected:
 	float DeadEventDelayTime = 5.0f;
+
+	FAIAttackFinished OnAttackFinished;
 };

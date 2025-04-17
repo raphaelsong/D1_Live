@@ -35,6 +35,12 @@ void AD1Monster::SetDead()
 {
 	Super::SetDead();
 
+	AD1AIController* AIController = Cast<AD1AIController>(GetController());
+	if (AIController)
+	{
+		AIController->StopAI();
+	}
+
 	FTimerHandle DeadTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle , FTimerDelegate::CreateLambda(
 		[&]()
@@ -42,4 +48,27 @@ void AD1Monster::SetDead()
 			Destroy();
 		}
 	) , DeadEventDelayTime , false);
+}
+
+float AD1Monster::GetAttackRange()
+{
+	return 150.0f;
+}
+
+void AD1Monster::AttackByAI()
+{
+	ProcessComboAttack();
+}
+
+void AD1Monster::ComboAttackEnd(UAnimMontage* TargetMontage , bool IsProperlyEnded)
+{
+	Super::ComboAttackEnd(TargetMontage , IsProperlyEnded);
+
+	// AttackTask한테 공격 끝남 알림
+	OnAttackFinished.ExecuteIfBound();
+}
+
+void AD1Monster::SetAIAttackFinishedDelegate(const FAIAttackFinished& InOnAttackFinished)
+{
+	OnAttackFinished = InOnAttackFinished;
 }
