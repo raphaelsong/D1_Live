@@ -7,6 +7,8 @@
 #include "Interface/D1AttackInterface.h"
 #include "D1CharacterBase.generated.h"
 
+struct FD1CharacterStat;
+
 UCLASS()
 class D1_API AD1CharacterBase : public ACharacter, public ID1AttackInterface
 {
@@ -19,6 +21,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void PostInitializeComponents() override;
 
 public:	
 	// Called every frame
@@ -44,6 +48,8 @@ public:
 
 	virtual void SetDead();
 
+	void ApplyStat(const FD1CharacterStat& BaseStat , const FD1CharacterStat& ModifierStat);
+
 protected:
 	UPROPERTY(EditAnywhere, Category = Attack)
 	TObjectPtr<class UAnimMontage> AttackMontage;
@@ -61,4 +67,7 @@ protected:
 
 	FTimerHandle ComboTimerHandle;
 	bool HasNextComboCommand = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UD1CharacterStatComponent> StatComponent;
 };
