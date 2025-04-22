@@ -3,12 +3,15 @@
 
 #include "Character/D1Monster.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "AI/D1AIController.h"
 
 AD1Monster::AD1Monster()
 {
 	AIControllerClass = AD1AIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	GetCharacterMovement()->MaxWalkSpeed = 400.0f;
 
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("D1Monster"));
 
