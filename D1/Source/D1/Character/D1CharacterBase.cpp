@@ -7,6 +7,8 @@
 #include "D1ComboAttackData.h"
 #include "Engine/DamageEvents.h"
 #include "CharacterStat/D1CharacterStatComponent.h"
+#include "Components/WidgetComponent.h"
+#include "UI/D1HpBarWidget.h"
 
 // Sets default values
 AD1CharacterBase::AD1CharacterBase()
@@ -45,6 +47,20 @@ AD1CharacterBase::AD1CharacterBase()
 
 	// Stat Component
 	StatComponent = CreateDefaultSubobject<UD1CharacterStatComponent>(TEXT("Stat"));
+
+	// HpBar Widget Component
+	HpBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HpBar"));
+	HpBarWidgetComponent->SetupAttachment(GetRootComponent());
+	HpBarWidgetComponent->SetRelativeLocation(FVector(0.0f , 0.0f , 90.0f));
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> HpBarWidgetRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/WBP_HpBar.WBP_HpBar_C'"));
+	if (HpBarWidgetRef.Succeeded())
+	{
+		HpBarWidgetComponent->SetWidgetClass(HpBarWidgetRef.Class);
+		HpBarWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+		HpBarWidgetComponent->SetDrawSize(FVector2D(150.0f , 15.0f));
+		HpBarWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 
 	// Attack Montage
 	static ConstructorHelpers::FObjectFinder<UAnimMontage> AttackMontageRef(TEXT("/Script/Engine.AnimMontage'/Game/Animation/AM_Attack.AM_Attack'"));
@@ -88,6 +104,20 @@ void AD1CharacterBase::PostInitializeComponents()
 
 	StatComponent->OnHpZero.AddUObject(this , &AD1CharacterBase::SetDead);
 	StatComponent->OnStatChanged.AddUObject(this , &AD1CharacterBase::ApplyStat);
+
+	if (HpBarWidgetComponent == nullptr)
+		return;
+
+	HpBarWidgetComponent->InitWidget();
+	UD1HpBarWidget* HpBarWidget = Cast<UD1HpBarWidget>(HpBarWidgetComponent->GetUserWidgetObject());
+	if (HpBarWidget)
+	{
+		HpBarWidget->UpdateStat(StatComponent->GetBaseStat() , StatComponent->GetModifierStat());
+		HpBarWidget->UpdateHp(StatComponent->GetCurrentHp());
+
+		StatComponent->OnHpChanged.AddUObject(HpBarWidget , &UD1HpBarWidget::UpdateHp);
+		StatComponent->OnStatChanged.AddUObject(HpBarWidget , &UD1HpBarWidget::UpdateStat);
+	}
 }
 
 // Called every frame
@@ -243,6 +273,8 @@ void AD1CharacterBase::SetDead()
 	}
 
 	SetActorEnableCollision(false);
+	
+	HpBarWidgetComponent->SetHiddenInGame(true);
 }
 
 void AD1CharacterBase::ApplyStat(const FD1CharacterStat& BaseStat , const FD1CharacterStat& ModifierStat)

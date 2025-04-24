@@ -23,6 +23,7 @@ public class D1 : ModuleRules
 			"NavigationSystem",
 			"AIModule",
 			"GameplayTasks",
+			"UMG",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

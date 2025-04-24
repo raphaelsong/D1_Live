@@ -70,4 +70,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UD1CharacterStatComponent> StatComponent;
+
+	UPROPERTY(VisibleAnywhere , BlueprintReadOnly)
+	TObjectPtr<class UWidgetComponent> HpBarWidgetComponent;
 };
