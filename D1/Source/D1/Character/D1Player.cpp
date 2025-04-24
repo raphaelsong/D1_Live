@@ -7,6 +7,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "GameData/D1CharacterStat.h"
+#include "CharacterStat/D1CharacterStatComponent.h"
+#include "UI/D1PlayerHUDWidget.h"
 
 AD1Player::AD1Player()
 {
@@ -22,6 +25,12 @@ AD1Player::AD1Player()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 	Camera->bUsePawnControlRotation = false;
+
+	static ConstructorHelpers::FClassFinder<UD1PlayerHUDWidget> PlayerHUDWidgetRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/WBP_PlayerHUD.WBP_PlayerHUD_C'"));
+	if (PlayerHUDWidgetRef.Succeeded())
+	{
+		PlayerHUDWidgetClass = PlayerHUDWidgetRef.Class;
+	}
 
 #pragma region InputSystem
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> IMCDefaultRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Default.IMC_Default'"));
@@ -68,6 +77,21 @@ void AD1Player::BeginPlay()
 		{
 			Subsystem->AddMappingContext(InputMappingContext , 0);
 		}
+	}
+
+	PlayerHUDWidget = CreateWidget<UD1PlayerHUDWidget>(PlayerController , PlayerHUDWidgetClass);
+	if (PlayerHUDWidget)
+	{
+		PlayerHUDWidget->AddToViewport();
+	}
+
+	if (PlayerHUDWidget && StatComponent)
+	{
+		PlayerHUDWidget->UpdateStat(StatComponent->GetBaseStat() , StatComponent->GetModifierStat());
+		PlayerHUDWidget->UpdateHp(StatComponent->GetCurrentHp());
+
+		StatComponent->OnHpChanged.AddUObject(PlayerHUDWidget , &UD1PlayerHUDWidget::UpdateHp);
+		StatComponent->OnStatChanged.AddUObject(PlayerHUDWidget , &UD1PlayerHUDWidget::UpdateStat);
 	}
 }
 

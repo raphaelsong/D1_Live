@@ -31,6 +31,13 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD)
+	TSubclassOf<class UD1PlayerHUDWidget> PlayerHUDWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = HUD)
+	TObjectPtr<class UD1PlayerHUDWidget> PlayerHUDWidget;
+
 #pragma region InputSystem
 private:
 	void Input_Attack(const FInputActionValue& InputValue);
