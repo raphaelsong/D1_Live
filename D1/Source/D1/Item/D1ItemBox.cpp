@@ -5,6 +5,9 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Interface/D1ItemInterface.h"
+#include "Engine/AssetManager.h"
+#include "Item/D1ItemData.h"
 
 // Sets default values
 AD1ItemBox::AD1ItemBox()
@@ -13,7 +16,6 @@ AD1ItemBox::AD1ItemBox()
 	SetRootComponent(TriggerBox);
 	TriggerBox->SetCollisionProfileName(FName("D1Trigger"));
 	TriggerBox->SetBoxExtent(FVector(40.0f , 42.0f , 30.0f));
-	TriggerBox->OnComponentBeginOverlap.AddDynamic(this , &AD1ItemBox::OnBoxBeginOverlap);
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(GetRootComponent());
@@ -37,8 +39,44 @@ AD1ItemBox::AD1ItemBox()
 	}
 }
 
+void AD1ItemBox::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	TriggerBox->OnComponentBeginOverlap.AddDynamic(this , &AD1ItemBox::OnBoxBeginOverlap);
+
+	UAssetManager& Manager = UAssetManager::Get();
+
+	TArray<FPrimaryAssetId> Assets;
+	Manager.GetPrimaryAssetIdList(TEXT("D1ItemData") , Assets);
+	ensure(Assets.Num() > 0);
+
+	int32 RandomIndex = FMath::RandRange(0 , Assets.Num() - 1);
+	FSoftObjectPtr AssetPtr(Manager.GetPrimaryAssetPath(Assets[RandomIndex]));
+	if (AssetPtr.IsPending())
+	{
+		AssetPtr.LoadSynchronous();
+	}
+
+	ItemData = Cast<UD1ItemData>(AssetPtr.Get());
+	ensure(ItemData);
+}
+
 void AD1ItemBox::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent , AActor* OtherActor , UPrimitiveComponent* OtherComp , int32 OtherBodyIndex , bool bFromSweep , const FHitResult& SweepResult)
 {
+	// 충돌 확인
+	if (nullptr == ItemData)
+	{
+		Destroy();
+		return;
+	}
+
+	ID1ItemInterface* OverlappingCharacter = Cast<ID1ItemInterface>(OtherActor);
+	if (OverlappingCharacter)
+	{
+		OverlappingCharacter->TakeItem(ItemData);
+	}
+
 	Mesh->SetHiddenInGame(true);
 	SetActorEnableCollision(false);
 	Effect->Activate(true);

@@ -9,6 +9,9 @@
 #include "CharacterStat/D1CharacterStatComponent.h"
 #include "Components/WidgetComponent.h"
 #include "UI/D1HpBarWidget.h"
+#include "Item/D1PotionItemData.h"
+#include "Item/D1ScrollItemData.h"
+#include "Item/D1WeaponItemData.h"
 
 // Sets default values
 AD1CharacterBase::AD1CharacterBase()
@@ -44,6 +47,10 @@ AD1CharacterBase::AD1CharacterBase()
 	{
 		GetMesh()->SetAnimInstanceClass(AnimInstanceRef.Class);
 	}
+
+	// Weapon Component
+	WeaponComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
+	WeaponComponent->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
 
 	// Stat Component
 	StatComponent = CreateDefaultSubobject<UD1CharacterStatComponent>(TEXT("Stat"));
@@ -89,6 +96,13 @@ AD1CharacterBase::AD1CharacterBase()
 	{
 		ComboAttackData = ComboAttackDataRef.Object;
 	}
+
+#pragma region ItemActions
+	TakeItemAction.Add(EItemType::Potion, FOnTakeItemDelegate::CreateUObject(this, &AD1CharacterBase::DrinkPotion));
+	TakeItemAction.Add(EItemType::Scroll, FOnTakeItemDelegate::CreateUObject(this, &AD1CharacterBase::ReadScroll));
+	TakeItemAction.Add(EItemType::Weapon, FOnTakeItemDelegate::CreateUObject(this, &AD1CharacterBase::EquipWeapon));
+#pragma endregion
+
 }
 
 // Called when the game starts or when spawned
@@ -283,3 +297,62 @@ void AD1CharacterBase::ApplyStat(const FD1CharacterStat& BaseStat , const FD1Cha
 	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
 }
 
+void AD1CharacterBase::TakeItem(UD1ItemData* InItemData)
+{
+	if (InItemData)
+	{
+		TakeItemAction[InItemData->Type].ExecuteIfBound(InItemData);
+	}
+}
+
+void AD1CharacterBase::DrinkPotion(UD1ItemData* InItemData)
+{
+	UE_LOG(LogTemp, Log, TEXT("DrinkPotion"));
+
+	UD1PotionItemData* PotionItemData = Cast<UD1PotionItemData>(InItemData);
+	if (PotionItemData)
+	{
+		if (StatComponent)
+		{
+			StatComponent->SetHp(StatComponent->GetCurrentHp() + PotionItemData->HealAmount);
+		}
+	}
+}
+
+void AD1CharacterBase::ReadScroll(UD1ItemData* InItemData)
+{
+	UE_LOG(LogTemp, Log, TEXT("ReadScroll"));
+
+	UD1ScrollItemData* ScrollItemData = Cast<UD1ScrollItemData>(InItemData);
+	if (ScrollItemData)
+	{
+		if (StatComponent)
+		{
+			StatComponent->AddBaseStat(ScrollItemData->BaseStat);
+		}
+	}
+}
+
+void AD1CharacterBase::EquipWeapon(UD1ItemData* InItemData)
+{
+	UE_LOG(LogTemp, Log, TEXT("EquipWeapon"));
+
+	UD1WeaponItemData* WeaponItemData = Cast<UD1WeaponItemData>(InItemData);
+	if (WeaponItemData)
+	{
+		if (WeaponItemData->WeaponMesh.IsPending())
+		{
+			WeaponItemData->WeaponMesh.LoadSynchronous();
+		}
+
+		if (WeaponComponent)
+		{
+			WeaponComponent->SetSkeletalMesh(WeaponItemData->WeaponMesh.Get());
+		}
+
+		if (StatComponent)
+		{
+			StatComponent->SetModifierStat(WeaponItemData->ModifierStat);
+		}
+	}
+}

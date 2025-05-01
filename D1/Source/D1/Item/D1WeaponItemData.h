@@ -23,7 +23,7 @@ public:
 
 public:
 	UPROPERTY(EditAnywhere, Category = Weapon)
-	TObjectPtr<class USkeletalMesh> WeaponMesh;
+	TSoftObjectPtr<class USkeletalMesh> WeaponMesh;
 
 	UPROPERTY(EditAnywhere , Category = Weapon)
 	FD1CharacterStat ModifierStat;

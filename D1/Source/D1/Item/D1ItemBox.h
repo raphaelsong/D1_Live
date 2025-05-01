@@ -15,6 +15,9 @@ public:
 	// Sets default values for this actor's properties
 	AD1ItemBox();
 
+protected:
+	virtual void PostInitializeComponents() override;
+
 public:
 	UFUNCTION()
 	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent , AActor*  OtherActor , UPrimitiveComponent* OtherComp , int32 OtherBodyIndex , bool bFromSweep , const FHitResult& SweepResult);
@@ -31,4 +34,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UParticleSystemComponent> Effect;
+
+	UPROPERTY(EditAnywhere, Category = Item)
+	TObjectPtr<class UD1ItemData> ItemData;
 };
