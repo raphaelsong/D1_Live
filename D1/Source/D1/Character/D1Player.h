@@ -31,6 +31,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+public:
+	virtual void SetDead() override;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD)
 	TSubclassOf<class UD1PlayerHUDWidget> PlayerHUDWidgetClass;

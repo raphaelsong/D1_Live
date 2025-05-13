@@ -356,3 +356,13 @@ void AD1CharacterBase::EquipWeapon(UD1ItemData* InItemData)
 		}
 	}
 }
+
+int32 AD1CharacterBase::GetLevel()
+{
+	return StatComponent->GetCurrentLevel();
+}
+
+void AD1CharacterBase::SetLevel(int32 InNewLevel)
+{
+	StatComponent->SetLevel(InNewLevel);
+}

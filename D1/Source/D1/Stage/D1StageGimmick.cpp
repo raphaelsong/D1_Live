@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "Engine/OverlapResult.h"
 #include "Character/D1Monster.h"
+#include "Item/D1ItemBox.h"
 
 // Sets default values
 AD1StageGimmick::AD1StageGimmick()
@@ -68,6 +69,15 @@ AD1StageGimmick::AD1StageGimmick()
 	{
 		MonsterClass = MonsterClassRef.Class;
 	}
+
+	// RewardState
+	static FName RewardSockets[] = {TEXT("+XReward"), TEXT("-XReward"), TEXT("+YReward"), TEXT("-YReward")};
+
+	for (FName RewardSocket : RewardSockets)
+	{
+		FVector BoxLocation = StageMesh->GetSocketLocation(RewardSocket);
+		RewardBoxLocations.Add(RewardSocket , BoxLocation);
+	}
 }
 
 void AD1StageGimmick::OnConstruction(const FTransform& Transform)
@@ -106,7 +116,12 @@ void AD1StageGimmick::OnGateTriggerBoxBeginOverlap(UPrimitiveComponent* Overlapp
 	if (!bResult)
 	{
 		FTransform  NewTransform(NewLocation);
-		AD1StageGimmick* NewGimmick = GetWorld()->SpawnActor<AD1StageGimmick>(AD1StageGimmick::StaticClass() , NewTransform);
+		AD1StageGimmick* NewGimmick = GetWorld()->SpawnActorDeferred<AD1StageGimmick>(AD1StageGimmick::StaticClass() , NewTransform);
+		if (NewGimmick)
+		{
+			NewGimmick->SetStageLevel(CurrentStageLevel + 1);
+			NewGimmick->FinishSpawning(NewTransform);
+		}
 	}
 }
 
@@ -163,6 +178,15 @@ void AD1StageGimmick::SetFight()
 
 void AD1StageGimmick::SetChooseReward()
 {
+	StageTriggerBox->SetCollisionProfileName(FName("NoCollision"));
+	for (auto GateTriggerBox : GateTriggerBoxes)
+	{
+		GateTriggerBox->SetCollisionProfileName(FName("NoCollision"));
+	}
+
+	CloseAllGates();
+
+	SpawnRewardBoxes();
 }
 
 void AD1StageGimmick::SetChooseNext()
@@ -179,10 +203,12 @@ void AD1StageGimmick::SetChooseNext()
 void AD1StageGimmick::OnMonsterSpawn()
 {
 	const FTransform SpawnTransform(GetActorLocation() + FVector::UpVector * 88.0f);
-	AD1Monster* NewMonster = GetWorld()->SpawnActor<AD1Monster>(MonsterClass , SpawnTransform);
+	AD1Monster* NewMonster = GetWorld()->SpawnActorDeferred<AD1Monster>(MonsterClass , SpawnTransform);
 	if (NewMonster)
 	{
 		NewMonster->OnDestroyed.AddDynamic(this , &AD1StageGimmick::OnMonsterDestroyed);
+		NewMonster->SetLevel(CurrentStageLevel);
+		NewMonster->FinishSpawning(SpawnTransform);
 	}
 }
 
@@ -193,8 +219,42 @@ void AD1StageGimmick::OnMonsterDestroyed(AActor* DestroyedActor)
 
 void AD1StageGimmick::SpawnRewardBoxes()
 {
+	for (const auto& RewardBoxLocation : RewardBoxLocations)
+	{
+		FTransform SpawnTransform(GetActorLocation() + RewardBoxLocation.Value + FVector(0.0f , 0.0f , 30.0f));
+		AD1ItemBox* RewardBoxActor = GetWorld()->SpawnActorDeferred<AD1ItemBox>(AD1ItemBox::StaticClass() , SpawnTransform);
+		
+		if (RewardBoxActor)
+		{
+			RewardBoxActor->Tags.Add(RewardBoxLocation.Key);
+			RewardBoxActor->GetTriggerBox()->OnComponentBeginOverlap.AddDynamic(this , &AD1StageGimmick::OnRewardBoxBeginOverlap);
+			RewardBoxes.Add(RewardBoxActor);
+		}
+	}
+
+	for (const auto& RewardBox : RewardBoxes)
+	{
+		if (RewardBox.IsValid())
+		{
+			RewardBox.Get()->FinishSpawning(RewardBox.Get()->GetActorTransform());
+		}
+	}
 }
 
 void AD1StageGimmick::OnRewardBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent , AActor* OtherActor , UPrimitiveComponent* OtherComp , int32 OtherBodyIndex , bool bFromSweep , const FHitResult& SweepResult)
 {
+	for (const auto& RewardBox : RewardBoxes)
+	{
+		if (RewardBox.IsValid())
+		{
+			AD1ItemBox* ValidItemBox = RewardBox.Get();
+			AActor* OverlapBox = OverlappedComponent->GetOwner();
+			if (OverlapBox != ValidItemBox)
+			{
+				ValidItemBox->Destroy();
+			}
+		}
+	}
+
+	SetState(EStageState::NEXT);
 }

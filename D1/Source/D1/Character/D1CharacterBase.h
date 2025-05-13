@@ -60,6 +60,10 @@ public:
 	virtual void ReadScroll(UD1ItemData* InItemData);
 	virtual void EquipWeapon(UD1ItemData* InItemData);
 
+public:
+	int32 GetLevel();
+	void SetLevel(int32 InNewLevel);
+
 protected:
 	TMap<EItemType , FOnTakeItemDelegate> TakeItemAction;
 

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "D1StageGimmick.generated.h"
-#include "C:/Program Files/Epic Games/UE_5.4/Engine/Plugins/Runtime/ZoneGraph/Source/ZoneGraphDebug/Public/ZoneGraphTestingActor.h"
+
 
 UENUM(BlueprintType)
 enum class EStageState : uint8
@@ -105,6 +105,16 @@ protected:
 	TArray<TWeakObjectPtr<class AD1ItemBox>> RewardBoxes;
 
 	TMap<FName , FVector> RewardBoxLocations;
+#pragma endregion
+
+#pragma region StageStat
+public:
+	FORCEINLINE int32 GetStageLevel() { return CurrentStageLevel; }
+	FORCEINLINE void SetStageLevel(int32 NewStageLevel) { CurrentStageLevel = NewStageLevel; }
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Stage)
+	int32 CurrentStageLevel = 0;
 #pragma endregion
 
 };

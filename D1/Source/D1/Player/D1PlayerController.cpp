@@ -11,6 +11,9 @@ AD1PlayerController::AD1PlayerController(const FObjectInitializer& ObjectInitial
 void AD1PlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	FInputModeGameOnly GameOnlyInputMode;
+	SetInputMode(GameOnlyInputMode);
 }
 
 void AD1PlayerController::SetupInputComponent()
