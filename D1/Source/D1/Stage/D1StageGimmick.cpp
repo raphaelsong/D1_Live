@@ -5,6 +5,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Engine/OverlapResult.h"
+#include "Character/D1Monster.h"
 
 // Sets default values
 AD1StageGimmick::AD1StageGimmick()
@@ -60,6 +61,13 @@ AD1StageGimmick::AD1StageGimmick()
 	StateChangeActions.Add(EStageState::FIGHT , FOnStateChangedDelegate::CreateUObject(this , &AD1StageGimmick::SetFight));
 	StateChangeActions.Add(EStageState::REWARD , FOnStateChangedDelegate::CreateUObject(this , &AD1StageGimmick::SetChooseReward));
 	StateChangeActions.Add(EStageState::NEXT , FOnStateChangedDelegate::CreateUObject(this , &AD1StageGimmick::SetChooseNext));
+
+	// FightState 
+	static ConstructorHelpers::FClassFinder<AD1Monster> MonsterClassRef(TEXT("/Script/Engine.Blueprint'/Game/Blueprints/BP_D1Monster.BP_D1Monster_C'"));
+	if (MonsterClassRef.Succeeded())
+	{
+		MonsterClass = MonsterClassRef.Class;
+	}
 }
 
 void AD1StageGimmick::OnConstruction(const FTransform& Transform)
@@ -71,6 +79,7 @@ void AD1StageGimmick::OnConstruction(const FTransform& Transform)
 
 void AD1StageGimmick::OnStageTriggerBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent , AActor* OtherActor , UPrimitiveComponent* OtherComp , int32 OtherBodyIndex , bool bFromSweep , const FHitResult& SweepResult)
 {
+	SetState(EStageState::FIGHT);
 }
 
 void AD1StageGimmick::OnGateTriggerBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent , AActor* OtherActor , UPrimitiveComponent* OtherComp , int32 OtherBodyIndex , bool bFromSweep , const FHitResult& SweepResult)
@@ -129,10 +138,27 @@ void AD1StageGimmick::SetState(EStageState InNewState)
 
 void AD1StageGimmick::SetReady()
 {
+	StageTriggerBox->SetCollisionProfileName(FName("D1Trigger"));
+	for (auto GateTriggerBox : GateTriggerBoxes)
+	{
+		GateTriggerBox->SetCollisionProfileName(FName("NoCollision"));
+	}
+
+	OpenAllGates();
 }
 
 void AD1StageGimmick::SetFight()
 {
+	StageTriggerBox->SetCollisionProfileName(FName("NoCollision"));
+	for (auto GateTriggerBox : GateTriggerBoxes)
+	{
+		GateTriggerBox->SetCollisionProfileName(FName("NoCollision"));
+	}
+
+	CloseAllGates();
+
+	// 몬스터 스폰
+	GetWorld()->GetTimerManager().SetTimer(MonsterSpawnTimerHandle , this , &AD1StageGimmick::OnMonsterSpawn , MonsterSpawnTime , false);
 }
 
 void AD1StageGimmick::SetChooseReward()
@@ -148,4 +174,27 @@ void AD1StageGimmick::SetChooseNext()
 	}
 
 	OpenAllGates();
+}
+
+void AD1StageGimmick::OnMonsterSpawn()
+{
+	const FTransform SpawnTransform(GetActorLocation() + FVector::UpVector * 88.0f);
+	AD1Monster* NewMonster = GetWorld()->SpawnActor<AD1Monster>(MonsterClass , SpawnTransform);
+	if (NewMonster)
+	{
+		NewMonster->OnDestroyed.AddDynamic(this , &AD1StageGimmick::OnMonsterDestroyed);
+	}
+}
+
+void AD1StageGimmick::OnMonsterDestroyed(AActor* DestroyedActor)
+{
+	SetState(EStageState::REWARD);
+}
+
+void AD1StageGimmick::SpawnRewardBoxes()
+{
+}
+
+void AD1StageGimmick::OnRewardBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent , AActor* OtherActor , UPrimitiveComponent* OtherComp , int32 OtherBodyIndex , bool bFromSweep , const FHitResult& SweepResult)
+{
 }

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "D1StageGimmick.generated.h"
+#include "C:/Program Files/Epic Games/UE_5.4/Engine/Plugins/Runtime/ZoneGraph/Source/ZoneGraphDebug/Public/ZoneGraphTestingActor.h"
 
 UENUM(BlueprintType)
 enum class EStageState : uint8
@@ -73,5 +74,37 @@ protected:
 	TMap<EStageState , FOnStateChangedDelegate> StateChangeActions;
 #pragma endregion
 
+#pragma region FightState
+public:
+	UFUNCTION()
+	void OnMonsterSpawn();
+
+	UFUNCTION()
+	void OnMonsterDestroyed(AActor* DestroyedActor);
+
+protected:
+	UPROPERTY(EditAnywhere, Category = Fight)
+	TSubclassOf<class AD1Monster> MonsterClass;
+	
+	UPROPERTY(EditAnywhere, Category = Fight)
+	float MonsterSpawnTime = 2.0f;
+
+	FTimerHandle MonsterSpawnTimerHandle;
+#pragma endregion
+
+#pragma region RewardState
+public:
+	UFUNCTION()
+	void SpawnRewardBoxes();
+	
+	UFUNCTION()
+	void OnRewardBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent , AActor* OtherActor , UPrimitiveComponent* OtherComp , int32 OtherBodyIndex , bool bFromSweep , const FHitResult& SweepResult);
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = Reward)
+	TArray<TWeakObjectPtr<class AD1ItemBox>> RewardBoxes;
+
+	TMap<FName , FVector> RewardBoxLocations;
+#pragma endregion
 
 };
