@@ -26,10 +26,10 @@ public:
 	bool IsGameCleared() override;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere , BlueprintReadWrite)
 	int32 ClearScore;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere , BlueprintReadOnly)
 	int32 CurrentScore;
 
 	UPROPERTY(VisibleAnywhere , BlueprintReadOnly)

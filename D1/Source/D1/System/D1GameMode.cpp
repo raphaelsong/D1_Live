@@ -30,6 +30,7 @@ void AD1GameMode::OnPlayerScoreChanged(int32 NewPlayerScore)
 			D1PlayerController->GameClear();
 		}
 	}
+
 }
 
 void AD1GameMode::AddPlayerScore(int32 AddPlayerScore)
@@ -60,6 +61,7 @@ void AD1GameMode::OnPlayerDead()
 	{
 		D1PlayerController->GameOver();
 	}
+
 }
 
 bool AD1GameMode::IsGameCleared()

@@ -31,8 +31,15 @@ public:
 	UFUNCTION(BlueprintImplementableEvent , Meta = (DisplayName = "OnGameOverCpp"))
 	void K2_GameOver();
 
+	UFUNCTION(BlueprintImplementableEvent , Meta = (DisplayName = "OnGameRetryCountCpp"))
+	void K2_OnGameRetryCount(int32 NewRetryCount);
+
 public:
 	void GameScoreChanged(int32 NewScore);
 	void GameClear();
 	void GameOver();
+
+protected:
+	UPROPERTY(VisibleAnywhere , BlueprintReadOnly)
+	TObjectPtr<class UD1SaveGame> SaveGameInstance;
 };
