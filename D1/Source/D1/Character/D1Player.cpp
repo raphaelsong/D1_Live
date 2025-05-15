@@ -10,6 +10,8 @@
 #include "GameData/D1CharacterStat.h"
 #include "CharacterStat/D1CharacterStatComponent.h"
 #include "UI/D1PlayerHUDWidget.h"
+#include "GameFramework/GameModeBase.h"
+#include "Interface/D1GameInterface.h"
 
 AD1Player::AD1Player()
 {
@@ -123,6 +125,12 @@ void AD1Player::SetDead()
 
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	DisableInput(PlayerController);
+
+	ID1GameInterface* D1GameMode = Cast<ID1GameInterface>(GetWorld()->GetAuthGameMode());
+	if (D1GameMode)
+	{
+		D1GameMode->OnPlayerDead();
+	}
 }
 
 void AD1Player::Input_Attack(const FInputActionValue& InputValue)
